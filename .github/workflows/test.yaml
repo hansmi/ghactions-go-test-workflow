@@ -1,14 +1,23 @@
-name: Go tests
+name: Go test
 
 on:
   workflow_call:
+    inputs:
+      runs-on:
+        type: string
+        required: false
+        default: ubuntu-latest
+      go-version:
+        type: string
+        required: false
+        default: stable
 
 permissions:
   contents: read
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  gotest:
+    runs-on: ${{ inputs.runs-on }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -16,7 +25,7 @@ jobs:
       - name: Go setup
         uses: actions/setup-go@v3
         with:
-          go-version: stable
+          go-version: ${{ inputs.go-version }}
 
       - uses: actions/cache@v3
         with:
@@ -29,7 +38,7 @@ jobs:
             ${{ runner.os }}-go-
 
       - name: Dependencies
-        run: go get -v
+        run: go get -v ./...
 
       - name: Build
         run: go build ./...
