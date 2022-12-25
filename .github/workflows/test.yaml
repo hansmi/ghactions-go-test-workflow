@@ -49,4 +49,22 @@ jobs:
       - name: Test with data race detection
         run: go test -race ./...
 
+      - name: Run additional tests
+        shell: bash
+        run: |
+          if [[ -e .github/ghactions-go-test-extra ]]; then
+            find .github/ghactions-go-test-extra -mindepth 1 -maxdepth 1 -type f
+          fi | \
+          sort --version-sort | \
+          while read -r i; do
+            printf "::group::%q\n" "$i"
+            if "$i"; then
+              :
+            else
+              rc=$?
+              printf "::error file=%q::Failed with code %d\n" "$i" "$rc"
+            fi
+            echo ::endgroup::
+          done
+
 # vim: set sw=2 sts=2 et :
