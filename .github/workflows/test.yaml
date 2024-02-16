@@ -15,6 +15,9 @@ on:
         type: string
         required: false
         default: .
+      install-packages:
+        type: string
+        required: false
 
 permissions:
   contents: read
@@ -32,6 +35,23 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Install packages
+        if: ${{ inputs.install-packages != '' }}
+        env:
+          INSTALL_PACKAGES: ${{ inputs.install-packages }}
+        shell: bash
+        run: |
+          packages="${INSTALL_PACKAGES:?}"
+          packages="${packages/,/ }"
+          echo "Packages: ${packages}" >&2
+          if type apt-get 2>/dev/null; then
+            sudo apt-get update
+            xargs <<< "$packages" | xargs --no-run-if-empty sudo apt-get install -y --
+          else
+            echo 'Installing packages is not supported on this system.' >&2
+            exit 1
+          fi
 
       - name: Go setup
         uses: actions/setup-go@v5
